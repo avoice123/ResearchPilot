@@ -4,6 +4,7 @@ from datetime import datetime
 def row_to_experiment(row:tuple)->Experiment:
     experiment=Experiment(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8])
     return experiment
+
 def create_table()->None:
     conn = sqlite3.connect("research_pilot.db")
     cursor = conn.cursor()
