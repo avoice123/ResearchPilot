@@ -18,7 +18,7 @@ def create_table()->None:
               KINJ        REAL,
               ACC_I       REAL,
               ACC_IQ      REAL,
-              ACC_P      REAL,
+              ACC_P       REAL,
               state_file  TEXT,
               result_file TEXT,
               created_at  TEXT
