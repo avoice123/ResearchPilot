@@ -3,6 +3,8 @@ from db import find_all_experiments, find_experiment_by_id, insert_experiment, f
 from pydantic import BaseModel,Field
 from importer import read_result, read_state,merge_experiment
 from models import Experiment
+from llm_service import analyze_experiment_with_llm, ask_about_experiment
+
 app = FastAPI()
 
 def experiment_to_dict(experiment: Experiment) -> dict[str, object]:
@@ -116,3 +118,34 @@ def get_analysis_best(metric: str):
             "best_kinj":best.kinj,
             "best_acc":best_value,
             "metric":metric}
+
+class AIAnalysisResponse(BaseModel):
+    id: int
+    analysis: str
+@app.get("/experiments/{experiment_id}/ai-analysis",response_model=AIAnalysisResponse)
+def get_ai_analysis(experiment_id: int):
+    experiment=find_experiment_by_id(experiment_id)
+    if experiment is None:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    try:
+        result=analyze_experiment_with_llm(experiment)
+    except Exception :
+        raise HTTPException(status_code=502, detail="LLM service failed")
+    return {"id":experiment.id,"analysis":result}
+
+
+class AskExperimentResponse(BaseModel):
+    id: int
+    result:str=Field(min_length=1)
+class AskExperimentRequest(BaseModel):
+    quest:str=Field(min_length=1)
+@app.post("/experiments/{experiment_id}/ask",response_model=AskExperimentResponse)
+def ask_experiment(quest:AskExperimentRequest,experiment_id: int):
+    experiment=find_experiment_by_id(experiment_id)
+    if experiment is None:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    try:
+        result=ask_about_experiment(experiment,quest.quest)
+    except Exception :
+        raise HTTPException(status_code=502, detail="LLM service failed")
+    return {"id":experiment.id,"result":result}
