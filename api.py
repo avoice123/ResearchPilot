@@ -149,3 +149,4 @@ def ask_experiment(quest:AskExperimentRequest,experiment_id: int):
     except Exception :
         raise HTTPException(status_code=502, detail="LLM service failed")
     return {"id":experiment.id,"result":result}
+
