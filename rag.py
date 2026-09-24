@@ -1,13 +1,15 @@
 from llm_service import client, ask_llm
 import math
+import json
 def load_document(path):
     with open(path,"r",encoding="utf-8") as f:
         text=f.read()
     return text
-def split_text(text,size=200):
+def split_text(text,size=200,overlap=50):
     chunks=[]
-    for i in range (0,len(text),size):
+    for i in range (0,len(text),size-overlap):
         chunks.append(text[i:i+size])
+
     return chunks
 
 def build_chunk_index(chunks: list[str]):
@@ -57,8 +59,22 @@ def answer_chunks(question:str,chunk_index)->str:
     """
     ask_result=ask_llm(prompt)
     return ask_result
+
+def save_chunk_index(chunk_index, path):
+    with open(path,"w",encoding="utf-8") as f:
+        json.dump(chunk_index,f,ensure_ascii=False)
+
+def load_chunk_index(path):
+    with open(path,"r",encoding="utf-8") as f:
+        data=json.load(f)
+        return data
+
 if __name__ == "__main__":
-    text = load_document("C:\\Users\\Administrator\\Desktop\\DFB说明.txt")
-    chunk_index=build_chunk_index(split_text(text))
-    result=answer_chunks("IQ readout 相比 Intensity readout 有什么优势？",chunk_index)
+    #text = load_document("C:\\Users\\Administrator\\Desktop\\DFB说明.txt")
+    #chunk_index=build_chunk_index(split_text(text))
+    #save_chunk_index(chunk_index,"./data/chunk_index.json")
+    tem_data=load_chunk_index("./data/chunk_index.json")
+    result=answer_chunks("当 XF = 0.029 时，MNIST 的最终分类准确率是多少？",tem_data)
     print(result)
+
+
