@@ -69,6 +69,7 @@ def load_chunk_index(path):
         data=json.load(f)
         return data
 
+
 if __name__ == "__main__":
     #text = load_document("C:\\Users\\Administrator\\Desktop\\DFB说明.txt")
     #chunk_index=build_chunk_index(split_text(text))

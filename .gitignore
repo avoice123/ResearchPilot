@@ -5,3 +5,5 @@ __pycache__/
 *.iml
 .env
 research_pilot.db
+.pytest_cache/
+*.log

@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
+from httpcore2 import request
+
 from db import find_all_experiments, find_experiment_by_id, insert_experiment, find_experiment_by_params
 from pydantic import BaseModel,Field
 from importer import read_result, read_state,merge_experiment
 from models import Experiment
 from llm_service import analyze_experiment_with_llm, ask_about_experiment
-
+from tools import ask_with_tools
 app = FastAPI()
-
 def experiment_to_dict(experiment: Experiment) -> dict[str, object]:
     return {
         "id": experiment.id,
@@ -61,11 +62,9 @@ def get_experiment(experiment_id: int):
        raise HTTPException(status_code=404, detail="Experiment not found")
 
    return experiment_to_dict(result)
-
 class ImportRequest(BaseModel):
     state_file: str=Field(min_length=1)
     result_file: str=Field(min_length=1)
-
 @app.post("/experiments/import")
 def import_experiment(request: ImportRequest):
     try:
@@ -132,8 +131,6 @@ def get_ai_analysis(experiment_id: int):
     except Exception :
         raise HTTPException(status_code=502, detail="LLM service failed")
     return {"id":experiment.id,"analysis":result}
-
-
 class AskExperimentResponse(BaseModel):
     id: int
     result:str=Field(min_length=1)
@@ -149,4 +146,14 @@ def ask_experiment(quest:AskExperimentRequest,experiment_id: int):
     except Exception :
         raise HTTPException(status_code=502, detail="LLM service failed")
     return {"id":experiment.id,"result":result}
-
+class AskLLMRequest(BaseModel):
+    question:str=Field(min_length=1)
+class AskLLMResponse(BaseModel):
+    answer:str=Field(min_length=1)
+@app.post("/agent/ask",response_model=AskLLMResponse)
+def agent_ask(quest:AskLLMRequest):
+    try:
+        result_llm=ask_with_tools(quest.question)
+    except Exception :
+        raise HTTPException(status_code=502, detail="Agent service failed")
+    return {"answer":result_llm}
